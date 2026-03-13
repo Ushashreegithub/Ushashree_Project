@@ -1,13 +1,11 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import FakeEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Load PDF
-loader = PyPDFLoader("data/policy.pdf")
+loader = PyPDFLoader("data/sop.pdf")
 documents = loader.load()
-
-print(f"Loaded {len(documents)} pages")
 
 # Split text
 text_splitter = RecursiveCharacterTextSplitter(
@@ -15,30 +13,20 @@ text_splitter = RecursiveCharacterTextSplitter(
     chunk_overlap=50
 )
 
-chunks = text_splitter.split_documents(documents)
+texts = text_splitter.split_documents(documents)
 
-print(f"Created {len(chunks)} chunks")
-
-embeddings = FakeEmbeddings(size=384)
-
-vectorstore = Chroma.from_documents(
-    chunks,
-    embeddings,
-    persist_directory="./chroma_db"
+# Load embedding model
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-vectorstore.persist()
+# Create vector database
+db = Chroma.from_documents(
+    texts,
+    embeddings,
+    persist_directory="db"
+)
 
-print("Documents stored locally!")
+db.persist()
 
-# Test query
-query = "What is this policy about?"
-
-results = vectorstore.similarity_search(query, k=5)
-
-print("\nTop Results:\n")
-
-for i, r in enumerate(results):
-    print(f"Result {i+1}:")
-    print(r.page_content[:300])
-    print("-" * 50)
+print("✅ SOP document embedded successfully!")

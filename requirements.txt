@@ -1,0 +1,12 @@
+langchain==0.1.16
+langchain-community
+langchain-chroma
+langchain-huggingface
+langchain-text-splitters
+chromadb
+sentence-transformers
+transformers
+torch
+fastapi
+uvicorn
+pypdf
